@@ -3,21 +3,21 @@
     <canvas id="clock" width="500" height="500"></canvas>
     <div class="control">
       <section>
-        <button @click="hour_add++">+</button>
-        <button @click="minute_add++">+</button>
-        <button @click="second_add++">+</button>
+        <button @click="hourBtn(true)">+</button>
+        <button @click="minuteBtn(true)">+</button>
+        <button @click="secondBtn(true)">+</button>
       </section>
       <section class="time">
-        <span>{{ hour }}</span>
+        <span>{{ hour > 9 ? hour : '0' + hour }}</span>
         <span>:</span>
-        <span>{{ minute }}</span>
+        <span>{{ minute > 9 ? minute : '0' + minute }}</span>
         <span>:</span>
-        <span>{{ second }}</span>
+        <span>{{ second > 9 ? second : '0' + second }}</span>
       </section>
       <section>
-        <button @click="hour_add--">-</button>
-        <button @click="minute_add--">-</button>
-        <button @click="second_add--">-</button>
+        <button @click="hourBtn(false)">-</button>
+        <button @click="minuteBtn(false)">-</button>
+        <button @click="secondBtn(false)">-</button>
       </section>
     </div>
   </div>
@@ -27,6 +27,7 @@ export default {
   mounted () {
     this.ctx = document.getElementById('clock').getContext('2d')
     this.draw(this.hour, this.minute, this.second)
+    this.init()
   },
   data () {
     return {
@@ -35,10 +36,15 @@ export default {
       hour_add: 0,
       minute_add: 0,
       second_add: 0,
-      timeout: null
+      interval: null
     }
   },
   methods: {
+    init () {
+      this.interval = setInterval(() => {
+        this.time = new Date()
+      }, 1000)
+    },
     draw (hour, minute, second) {
       let ctx = this.ctx
       ctx.clearRect(0, 0, 500, 500)
@@ -126,9 +132,52 @@ export default {
       ctx.arc(250, 250, 12, 0, 360)
       ctx.fill()
       ctx.closePath()
-      this.timeout = setTimeout(() => {
-        this.time = new Date()
-      }, 1000)
+    },
+    hourBtn (flag) {
+      if (flag) {
+        this.hour_add++
+        if (this.hour === 24) {
+          this.hour_add = -this.time.getHours()
+        }
+      } else {
+        this.hour_add--
+        if (this.hour < 0) {
+          this.hour_add = 23 - this.time.getHours()
+        }
+      }
+      this.draw(this.hour, this.minute, this.second)
+    },
+    minuteBtn (flag) {
+      if (flag) {
+        this.minute_add++
+        if (this.minute === 60) {
+          this.minute_add = -this.time.getMinutes()
+          this.hour_add++
+        }
+      } else {
+        this.minute_add--
+        if (this.minute < 0) {
+          this.minute_add = 59 - this.time.getMinutes()
+          this.hour_add--
+        }
+      }
+      this.draw(this.hour, this.minute, this.second)
+    },
+    secondBtn (flag) {
+      if (flag) {
+        this.second_add++
+        if (this.second >= 60) {
+          this.second_add = -this.time.getSeconds()
+          this.minute_add++
+        }
+      } else {
+        this.second_add--
+        if (this.second < 0) {
+          this.second_add = 59 - this.time.getSeconds()
+          this.minute_add--
+        }
+      }
+      this.draw(this.hour, this.minute, this.second)
     }
   },
   watch: {
@@ -138,8 +187,8 @@ export default {
   },
   computed: {
     hour () {
-      console.log(this.time)
-      return this.time.getHours() + this.hour_add
+      let hours = this.time.getHours() + this.hour_add
+      return hours
     },
     minute () {
       return this.time.getMinutes() + this.minute_add
@@ -154,6 +203,7 @@ export default {
 * {
   padding: 0;
   margin: 0;
+
 }
 :root {
   font-size: 1vw;
@@ -195,6 +245,8 @@ export default {
     }
     .time{
       font-size: 2rem;
+      height: 3rem;
+      line-height: 3rem;
       span:nth-of-type(2n+1){
         display: inline-block;
         width: 7rem;
