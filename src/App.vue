@@ -161,6 +161,11 @@ export default {
   justify-content: center;
   align-items: center;
 }
+@media screen and(max-width : 800px){
+  :root{
+    font-size: 2vw;
+  }
+}
 
 #app {
   #clock{
